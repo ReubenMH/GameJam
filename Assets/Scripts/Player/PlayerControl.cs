@@ -37,7 +37,7 @@ public class PlayerControl : MonoBehaviour
     {
         isCursorBound = b;
         Cursor.visible = !b;
-        //Cursor.lockState = b ? CursorLockMode.Locked : CursorLockMode.None;
+        Cursor.lockState = b ? CursorLockMode.Confined : CursorLockMode.None;
     }
 
     Vector2 oldMousePos;
@@ -66,8 +66,8 @@ public class PlayerControl : MonoBehaviour
         float sideways = Input.GetAxis("Horizontal");
 
         Vector3 move = Vector3.zero;
-        move += transform.forward * (forward * walkSpeed * Time.deltaTime);
-        move += transform.right * (sideways * walkSpeed * Time.deltaTime);
+        move += transform.forward * (forward * walkSpeed);
+        move += transform.right * (sideways * walkSpeed);
         move.y = rigid.velocity.y;
         rigid.velocity = move;
 

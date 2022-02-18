@@ -162,9 +162,12 @@ public class Tree : MonoBehaviour
 
     #endregion
 
-    public static void StartGrowing(TreeConfig config, Vector3 worldPosition)
+    public static void StartGrowing(Transform parent, TreeConfig config, Vector3 worldPosition)
     {
         Trunk firstTrunk = new Trunk(null, config, 0, worldPosition);
+
+        if(parent != null)
+            firstTrunk.trunkObject.transform.SetParent(parent, true);
         firstTrunk.Grow();
     }
 }
