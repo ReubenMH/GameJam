@@ -30,8 +30,6 @@ public class Gun : MonoBehaviour
 
     public void AttemptShoot()
     {
-        Debug.Log("Attempting shoot");
-
         if (shootRateTimer < timeBetweenShots)
             return;
 
@@ -43,8 +41,6 @@ public class Gun : MonoBehaviour
 
     void Shoot()
     {
-        Debug.Log("Shoot");
-
         shootRateTimer = 0f;
         currentAmmo--;
 

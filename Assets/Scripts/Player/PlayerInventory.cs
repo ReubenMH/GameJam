@@ -23,8 +23,6 @@ public class PlayerInventory : MonoBehaviour
 
     public void AttemptShoot()
     {
-        Debug.Log("Inventory attempt shoot");
-
         if(heldGun == null)
         {
             return;
@@ -56,13 +54,13 @@ public class PlayerInventory : MonoBehaviour
         if (heldGun != null)
             DiscardHeldGun();
 
-        Destroy(pickup.parentGO.gameObject);
-
         heldGun = Instantiate(pickup.ContainedGun, gunHoldPoint);
         heldGun.Pickup();
 
         UIControl.Instance.SetPickupGun(false);
         UIControl.Instance.ShowGunInfoCanvas(heldGun);
+
+        Destroy(pickup.parentGO.gameObject);
     }
 
     private void OnTriggerEnter(Collider other)

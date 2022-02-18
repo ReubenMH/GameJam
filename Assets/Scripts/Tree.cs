@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using DG.Tweening;
 
 public class Tree : MonoBehaviour
 {
@@ -10,10 +11,12 @@ public class Tree : MonoBehaviour
     {
         public int StemCount;
         public Vector2Int BranchesPerStem;
-        public int LeafCount;
-        public float TrunkGrowTime;
-        public Vector3 minSize;
-        public Vector3 maxSize;
+        public Vector2Int LeafCount;
+        public Vector2 TrunkGrowTime;
+        public Vector3 minTrunkSize;
+        public Vector3 maxTrunkSize;
+        public Vector3 minLeafSize;
+        public Vector3 maxLeafSize;
         public Vector3 minRotation;
         public Vector3 maxRotation;
         public GameObject trunkObject;
@@ -25,8 +28,10 @@ public class Tree : MonoBehaviour
         public Trunk parent;
         public Trunk[] Stems;
         public GameObject trunkObject;
+        public TrunkElement trunkElement;
         protected TreeConfig config;
         int trunkCount;
+        protected Vector3 treeScale;
 
         public Trunk(Trunk parent, TreeConfig config, int trunkCount, Vector3 growthPosition)
         {
@@ -35,7 +40,7 @@ public class Tree : MonoBehaviour
             this.trunkCount = trunkCount;
 
             MakeObject(growthPosition);
-            Stems = new Trunk[Random.Range(config.BranchesPerStem.x, config.BranchesPerStem.y)];
+            MakeChildrenCount();
 
             if (trunkCount >= config.StemCount)
             {
@@ -47,19 +52,26 @@ public class Tree : MonoBehaviour
             }
         }
 
+        protected virtual void MakeChildrenCount()
+        {
+            Stems = new Trunk[Random.Range(config.BranchesPerStem.x, config.BranchesPerStem.y)];
+        }
+
         protected virtual void MakeLeaves()
         {
+            Vector3 anchorPosition = trunkObject.transform.localScale / 2f;
             for (int i = 0; i < Stems.Length; i++)
             {
-                Stems[i] = new Leaf(this, config, trunkCount + 1, Vector3.zero);
+                Stems[i] = new Leaf(this, config, trunkCount + 1, anchorPosition);
             }
         }
 
         protected virtual void MakeBranches()
         {
+            Vector3 anchorPosition = trunkObject.transform.localScale / 2f;
             for (int i = 0; i < Stems.Length; i++)
             {
-                Stems[i] = new Trunk(this, config, trunkCount + 1, Vector3.zero);
+                Stems[i] = new Trunk(this, config, trunkCount + 1, anchorPosition);
             }
         }
 
@@ -74,15 +86,14 @@ public class Tree : MonoBehaviour
             MakeRootGO();
 
             if(parent != null)
-                trunkObject.transform.SetParent(parent.trunkObject.transform);
+                trunkObject.transform.SetParent(parent.trunkObject.GetComponent<TrunkElement>().offsetTrunk);
 
             trunkObject.transform.localPosition = growthPosition;
 
-            Vector3 scale = Vector3.zero;
-            scale.x = Random.Range(config.minSize.x, config.maxSize.x);
-            scale.y = Random.Range(config.minSize.y, config.maxSize.y);
-            scale.z = Random.Range(config.minSize.z, config.maxSize.z);
-            trunkObject.transform.localScale = scale;
+            treeScale = GetSize();
+            trunkObject.transform.localScale = Vector3.zero * 0.001f;
+            trunkElement = trunkObject.GetComponent<TrunkElement>();
+            trunkElement.SetActive(false);
 
             Vector3 rotation = Vector3.zero;
             rotation.x = Random.Range(config.minRotation.x, config.maxRotation.x);
@@ -90,12 +101,38 @@ public class Tree : MonoBehaviour
             rotation.z = Random.Range(config.minRotation.z, config.maxRotation.z);
             trunkObject.transform.localEulerAngles = rotation;
         }
+
+        protected virtual Vector3 GetSize()
+        {
+            Vector3 scale = Vector3.zero;
+            scale.x = Random.Range(config.minTrunkSize.x, config.maxTrunkSize.x);
+            scale.y = Random.Range(config.minTrunkSize.y, config.maxTrunkSize.y);
+            scale.z = Random.Range(config.minTrunkSize.z, config.maxTrunkSize.z);
+            return scale;
+        }
+
+        public virtual void Grow()
+        {
+            trunkElement.SetActive(true);
+            trunkObject.transform.DOScale(treeScale, Random.Range(config.TrunkGrowTime.x, config.TrunkGrowTime.y)).OnComplete(() =>
+            {
+                for(int i = 0; i < Stems.Length; i++)
+                {
+                    Stems[i].Grow();
+                }
+            });
+        }
     }
 
     public class Leaf : Trunk
     {
         public Leaf(Trunk parent, TreeConfig config, int trunkCount, Vector3 growthPosition) : base(parent, config, trunkCount, growthPosition)
         {
+        }
+
+        protected override void MakeChildrenCount()
+        {
+            Stems = new Trunk[Random.Range(config.LeafCount.x, config.LeafCount.y)];
         }
 
         protected override void MakeBranches()
@@ -112,20 +149,22 @@ public class Tree : MonoBehaviour
         {
             trunkObject = Instantiate(config.leafObject);
         }
+
+        protected override Vector3 GetSize()
+        {
+            Vector3 scale = Vector3.zero;
+            scale.x = Random.Range(config.minLeafSize.x, config.maxLeafSize.x);
+            scale.y = Random.Range(config.minLeafSize.y, config.maxLeafSize.y);
+            scale.z = Random.Range(config.minLeafSize.z, config.maxLeafSize.z);
+            return scale;
+        }
     }
 
     #endregion
 
     public static void StartGrowing(TreeConfig config, Vector3 worldPosition)
     {
-        GameObject treeObj = new GameObject();
-        Tree tree = treeObj.AddComponent<Tree>();
-        tree.transform.position = worldPosition;
-        tree.StartGrowingInternal(config);
-    }
-
-    private void StartGrowingInternal(TreeConfig config)
-    {
-        Trunk firstTrunk = new Trunk(null, config, 0, transform.position);
+        Trunk firstTrunk = new Trunk(null, config, 0, worldPosition);
+        firstTrunk.Grow();
     }
 }

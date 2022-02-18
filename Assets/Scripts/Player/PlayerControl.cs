@@ -10,12 +10,15 @@ public class PlayerControl : MonoBehaviour
 
     [SerializeField] float walkSpeed;
     [SerializeField] float cameraLookSpeed;
+    [SerializeField] float jumpForce;
 
     PlayerInventory inventory;
+    PlayerFeet feet;
 
     private void Awake()
     {
         inventory = GetComponent<PlayerInventory>();
+        feet = GetComponentInChildren<PlayerFeet>();
 
         SetCursorBound(true);
     }
@@ -65,6 +68,8 @@ public class PlayerControl : MonoBehaviour
         Vector3 move = Vector3.zero;
         move += transform.forward * (forward * walkSpeed * Time.deltaTime);
         move += transform.right * (sideways * walkSpeed * Time.deltaTime);
+        move.y = rigid.velocity.y;
+        rigid.velocity = move;
 
         if (Input.GetButtonDown("Interact"))
         {
@@ -76,6 +81,18 @@ public class PlayerControl : MonoBehaviour
             inventory.AttemptShoot();
         }
 
-        rigid.velocity = move;
+        if (Input.GetButtonDown("Jump"))
+        {
+            if(feet.IsGrounded)
+                Jump();
+        }
+
+    }
+
+    void Jump()
+    {
+        Vector3 velocity = rigid.velocity;
+        velocity.y = jumpForce;
+        rigid.velocity = velocity;
     }
 }
