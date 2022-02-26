@@ -9,7 +9,7 @@ public class PlayerControl : MonoBehaviour
     [SerializeField] Vector2 headLookBounds;
 
     [SerializeField] float walkSpeed;
-    [SerializeField] float cameraLookSpeed;
+    [SerializeField] Vector2 cameraLookSpeed;
     [SerializeField] float jumpForce;
 
     PlayerInventory inventory;
@@ -19,7 +19,6 @@ public class PlayerControl : MonoBehaviour
     {
         inventory = GetComponent<PlayerInventory>();
         feet = GetComponentInChildren<PlayerFeet>();
-
         SetCursorBound(true);
     }
 
@@ -27,7 +26,6 @@ public class PlayerControl : MonoBehaviour
     {
         ProcessLook();
         ProcessMovement();
-
         if (Input.GetButtonDown("Cancel"))
             SetCursorBound(!isCursorBound);
     }
@@ -44,20 +42,15 @@ public class PlayerControl : MonoBehaviour
     float headRot = 0f;
     void ProcessLook()
     {
-        Vector2 mousePos = Input.mousePosition;
+        float mouseX = Input.GetAxis("MouseX");
+        transform.Rotate(transform.up, mouseX * cameraLookSpeed.x * Time.deltaTime);
 
-        Vector2 diff = oldMousePos - mousePos;
-        float diffX = -1f * diff.x;
-        transform.Rotate(transform.up, diffX * cameraLookSpeed * Time.deltaTime);
-
-        float diffY = diff.y;
-        headRot += diffY * cameraLookSpeed * Time.deltaTime;
+        float mouseY = Input.GetAxis("MouseY");
+        headRot -= mouseY * cameraLookSpeed.y * Time.deltaTime;
         headRot = Mathf.Clamp(headRot, headLookBounds.x, headLookBounds.y);
         head.localEulerAngles = new Vector3(headRot, 0f, 0f);
 
         inventory.SetGunAngle(new Vector3(headRot, 0f, 0f));
-
-        oldMousePos = mousePos;
     }
 
     void ProcessMovement()
