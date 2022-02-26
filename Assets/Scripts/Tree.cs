@@ -108,7 +108,7 @@ public class Tree : MonoBehaviour
             scale.x = Random.Range(config.minTrunkSize.x, config.maxTrunkSize.x);
             scale.y = Random.Range(config.minTrunkSize.y, config.maxTrunkSize.y);
             scale.z = Random.Range(config.minTrunkSize.z, config.maxTrunkSize.z);
-            return scale;
+            return scale / 1.5f;
         }
 
         public virtual void Grow()
