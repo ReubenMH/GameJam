@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class PlayerControl : MonoBehaviour
 {
+    [SerializeField] GrappleControl grapple;
+
     [SerializeField] Rigidbody rigid;
     [SerializeField] Transform head;
     [SerializeField] Vector2 headLookBounds;
@@ -11,9 +13,16 @@ public class PlayerControl : MonoBehaviour
     [SerializeField] float walkSpeed;
     [SerializeField] Vector2 cameraLookSpeed;
     [SerializeField] float jumpForce;
+    [SerializeField] float grappleSpeed;
+    [SerializeField] float grapplePullSpeed;
 
     PlayerInventory inventory;
     PlayerFeet feet;
+    float forward = 0.0f;
+    float sideways = 0.0f;
+
+    // Grapple vars
+    bool isPulled = false;
 
     private void Awake()
     {
@@ -24,8 +33,15 @@ public class PlayerControl : MonoBehaviour
 
     private void Update()
     {
+        forward = Input.GetAxis("Vertical");
+        sideways = Input.GetAxis("Horizontal");
+
         ProcessLook();
-        ProcessMovement();
+        if (isPulled == false)
+        {
+            ProcessMovement();
+        }
+
         if (Input.GetButtonDown("Cancel"))
             SetCursorBound(!isCursorBound);
     }
@@ -55,13 +71,10 @@ public class PlayerControl : MonoBehaviour
 
     void ProcessMovement()
     {
-        float forward = Input.GetAxis("Vertical");
-        float sideways = Input.GetAxis("Horizontal");
-
         Vector3 move = Vector3.zero;
         move += transform.forward * (forward * walkSpeed);
         move += transform.right * (sideways * walkSpeed);
-        move.y = rigid.velocity.y;
+        move.y += rigid.velocity.y;
         rigid.velocity = move;
 
         if (Input.GetButtonDown("Interact"))
@@ -74,6 +87,11 @@ public class PlayerControl : MonoBehaviour
             inventory.AttemptShoot();
         }
 
+        if (Input.GetMouseButtonDown(1))
+        {
+            Grapple();
+        }
+
         if (Input.GetButtonDown("Jump"))
         {
             if(feet.IsGrounded)
@@ -82,10 +100,27 @@ public class PlayerControl : MonoBehaviour
 
     }
 
+    void Grapple()
+    {
+        grapple.ShootGrapple(head.transform.forward, grappleSpeed);
+    }
+
+    public void UpdateGrapplePull(Vector3 dir)
+    {
+        rigid.velocity = grapplePullSpeed * dir;
+        isPulled = true;
+    }
+
+    public void EndGrapplePull()
+    {
+        isPulled = false;
+    }
+
     void Jump()
     {
         Vector3 velocity = rigid.velocity;
         velocity.y = jumpForce;
         rigid.velocity = velocity;
     }
+
 }
