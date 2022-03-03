@@ -14,7 +14,13 @@ public class EnemyController : MonoBehaviour
     [SerializeField] float enemySpawnAddedHeight;
     [SerializeField] float enemySpawnIncreasePerSecond;
     float enemySpawnRateIncrease = 1f;
+    private bool spawning = false;
 
+    public void StartSpawning(int zoneID)
+    {
+        spawning = true;
+    }
+    
     private void Awake()
     {
         ResetEnemySpawnTime();
@@ -40,6 +46,7 @@ public class EnemyController : MonoBehaviour
 
     void SpawnEnemy()
     {
+        if (!spawning) return;
         Enemy currEnemy = Instantiate(enemyPrefabs[Random.Range(0, enemyPrefabs.Length)]);
         ResetEnemySpawnTime();
         enemySpawnTimeCounter = 0f;

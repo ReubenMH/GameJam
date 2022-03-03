@@ -49,15 +49,18 @@ public class Bullet : MonoBehaviour
         else if(Random.Range(0f, 1f) < treeSpawnChance)
         {
             Debug.Log("Hit other object");
-            //Create a tree
 
-            GameObject treeParent = Instantiate(blankGO);
-            treeParent.transform.position = transform.position;
-            treeParent.transform.LookAt(treeParent.transform.position + Vector3.up);
-            Tree.StartGrowing(treeParent.transform, spawnedTree, transform.position, Vector3.down);
-            treeParent.transform.LookAt(treeParent.transform.position + hitNorm);
-            //treeParent.transform.rotation = Quaternion.Euler(treeParent.transform.rotation.x, 0, treeParent.transform.rotation.x);
-            //treeParent.transform.rotation = Quaternion.Euler(0, 0, treeParent.transform.rotation.z);
+            if (hitObj.gameObject.layer == 9)
+            {
+                //Create a tree
+                GameObject treeParent = Instantiate(blankGO);
+                treeParent.transform.position = transform.position;
+                treeParent.transform.LookAt(treeParent.transform.position + Vector3.up);
+                Tree.StartGrowing(treeParent.transform, spawnedTree, transform.position, Vector3.down);
+                treeParent.transform.LookAt(treeParent.transform.position + hitNorm);
+                //treeParent.transform.rotation = Quaternion.Euler(treeParent.transform.rotation.x, 0, treeParent.transform.rotation.x);
+                //treeParent.transform.rotation = Quaternion.Euler(0, 0, treeParent.transform.rotation.z);
+            }
         }
 
         Destroy(gameObject);

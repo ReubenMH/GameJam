@@ -10,6 +10,10 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="file://$PROJECT_DIR$/Assets/Scripts/Killbox.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Assets/Scripts/Enemy/SpawnZone.cs" root0="FORCE_HIGHLIGHTING" />
+  </component>
   <component name="ProjectId" id="25rjWnKpK4EZY1jDHwdwWNTMBcc" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
@@ -30,7 +34,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1646292138809</updated>
-      <workItem from="1646292145046" duration="6324000" />
+      <workItem from="1646292145046" duration="11181000" />
     </task>
     <servers />
   </component>

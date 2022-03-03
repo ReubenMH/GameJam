@@ -91,6 +91,8 @@ public class Tree : MonoBehaviour
 
             trunkObject.transform.localPosition = growthPosition;
 
+            
+            
             treeScale = GetSize();
             trunkObject.transform.localScale = Vector3.zero * 0.001f;
             trunkElement = trunkObject.GetComponent<TrunkElement>();

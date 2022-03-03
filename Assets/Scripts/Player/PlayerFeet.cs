@@ -15,7 +15,7 @@ public class PlayerFeet : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Ground"))
+        if (other.CompareTag("Ground") || other.CompareTag("Tree"))
         {
             groundObjects.Add(other.gameObject);
         }
@@ -23,7 +23,7 @@ public class PlayerFeet : MonoBehaviour
 
     private void OnTriggerExit(Collider other)
     {
-        if (other.CompareTag("Ground"))
+        if (other.CompareTag("Ground") || other.CompareTag("Tree"))
         {
             groundObjects.Remove(other.gameObject);
         }
