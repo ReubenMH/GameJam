@@ -21,6 +21,7 @@ public class Tree : MonoBehaviour
         public Vector3 maxRotation;
         public GameObject trunkObject;
         public GameObject leafObject;
+        public float trunkStraightness;
     }
 
     public class Trunk
@@ -33,13 +34,13 @@ public class Tree : MonoBehaviour
         int trunkCount;
         protected Vector3 treeScale;
 
-        public Trunk(Trunk parent, TreeConfig config, int trunkCount, Vector3 growthPosition)
+        public Trunk(Trunk parent, TreeConfig config, int trunkCount, Vector3 growthPosition, Vector3 growthDirection)
         {
             this.parent = parent;
             this.config = config;
             this.trunkCount = trunkCount;
 
-            MakeObject(growthPosition);
+            MakeObject(growthPosition, growthDirection);
             MakeChildrenCount();
 
             if (trunkCount >= config.StemCount)
@@ -62,7 +63,7 @@ public class Tree : MonoBehaviour
             Vector3 anchorPosition = trunkObject.transform.localScale / 2f;
             for (int i = 0; i < Stems.Length; i++)
             {
-                Stems[i] = new Leaf(this, config, trunkCount + 1, anchorPosition);
+                Stems[i] = new Leaf(this, config, trunkCount + 1, anchorPosition, Vector3.zero);
             }
         }
 
@@ -71,7 +72,7 @@ public class Tree : MonoBehaviour
             Vector3 anchorPosition = trunkObject.transform.localScale / 2f;
             for (int i = 0; i < Stems.Length; i++)
             {
-                Stems[i] = new Trunk(this, config, trunkCount + 1, anchorPosition);
+                Stems[i] = new Trunk(this, config, trunkCount + 1, anchorPosition, Vector3.zero);
             }
         }
 
@@ -80,7 +81,7 @@ public class Tree : MonoBehaviour
             trunkObject = Instantiate(config.trunkObject);
         }
 
-        protected virtual void MakeObject(Vector3 growthPosition)
+        protected virtual void MakeObject(Vector3 growthPosition, Vector3 growthDirection)
         {
             //Create our object
             MakeRootGO();
@@ -99,6 +100,7 @@ public class Tree : MonoBehaviour
             rotation.x = Random.Range(config.minRotation.x, config.maxRotation.x);
             rotation.y = Random.Range(config.minRotation.y, config.maxRotation.y);
             rotation.z = Random.Range(config.minRotation.z, config.maxRotation.z);
+            rotation *= trunkCount == 0 ? config.trunkStraightness : 1;
             trunkObject.transform.localEulerAngles = rotation;
         }
 
@@ -126,7 +128,7 @@ public class Tree : MonoBehaviour
 
     public class Leaf : Trunk
     {
-        public Leaf(Trunk parent, TreeConfig config, int trunkCount, Vector3 growthPosition) : base(parent, config, trunkCount, growthPosition)
+        public Leaf(Trunk parent, TreeConfig config, int trunkCount, Vector3 growthPosition, Vector3 growthDirection) : base(parent, config, trunkCount, growthPosition, growthDirection)
         {
         }
 
@@ -162,12 +164,15 @@ public class Tree : MonoBehaviour
 
     #endregion
 
-    public static void StartGrowing(Transform parent, TreeConfig config, Vector3 worldPosition)
+    public static void StartGrowing(Transform parent, TreeConfig config, Vector3 worldPosition, Vector3 startDirection)
     {
-        Trunk firstTrunk = new Trunk(null, config, 0, worldPosition);
+        Trunk firstTrunk = new Trunk(null, config, 0, worldPosition, startDirection);
 
         if(parent != null)
             firstTrunk.trunkObject.transform.SetParent(parent, true);
+        
+        
+        
         firstTrunk.Grow();
     }
 }
