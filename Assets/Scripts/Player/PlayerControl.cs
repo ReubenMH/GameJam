@@ -11,12 +11,15 @@ public class PlayerControl : MonoBehaviour
     [SerializeField] Vector2 headLookBounds;
 
     [SerializeField] float walkSpeed;
-    [SerializeField] Vector2 cameraLookSpeed;
+	[SerializeField] float airChangeSpeed;
+	[SerializeField] float airDrag;
+	[SerializeField] Vector2 cameraLookSpeed;
     [SerializeField] float jumpForce;
     [SerializeField] float grappleSpeed;
     [SerializeField] float grapplePullSpeed;
+	[SerializeField] float grappleLerpTime;
 
-    PlayerInventory inventory;
+	PlayerInventory inventory;
     PlayerFeet feet;
     float forward = 0.0f;
     float sideways = 0.0f;
@@ -37,10 +40,10 @@ public class PlayerControl : MonoBehaviour
         sideways = Input.GetAxis("Horizontal");
 
         ProcessLook();
-        if (isPulled == false)
-        {
+        //if (isPulled == false)
+        //{
             ProcessMovement();
-        }
+        //}
 
         if (Input.GetButtonDown("Cancel"))
             SetCursorBound(!isCursorBound);
@@ -52,7 +55,9 @@ public class PlayerControl : MonoBehaviour
         isCursorBound = b;
         Cursor.visible = !b;
         Cursor.lockState = b ? CursorLockMode.Confined : CursorLockMode.None;
-    }
+
+		Cursor.lockState = CursorLockMode.Locked;
+	}
 
     Vector2 oldMousePos;
     float headRot = 0f;
@@ -72,8 +77,25 @@ public class PlayerControl : MonoBehaviour
     void ProcessMovement()
     {
         Vector3 move = Vector3.zero;
-        move += transform.forward * (forward * walkSpeed);
-        move += transform.right * (sideways * walkSpeed);
+
+		float totalVelocity = Mathf.Max(Mathf.Sqrt(forward * forward + sideways * sideways), 0.1f);
+		
+
+		if(feet.IsGrounded) {
+			move += transform.forward * (forward * Mathf.Abs(forward) / totalVelocity) * walkSpeed;
+			move += transform.right * (sideways * Mathf.Abs(sideways) / totalVelocity) * walkSpeed;
+		} else {
+			move.x = rigid.velocity.x;
+			move.z = rigid.velocity.z;
+
+			move += transform.forward * (forward * Mathf.Abs(forward) / totalVelocity) * airChangeSpeed * Time.deltaTime;
+			move += transform.right * (sideways * Mathf.Abs(sideways) / totalVelocity) * airChangeSpeed * Time.deltaTime;
+
+			move.x *= (1f - airDrag * Time.deltaTime);
+			move.z *= (1f - airDrag * Time.deltaTime);
+
+		}
+
         move.y += rigid.velocity.y;
         rigid.velocity = move;
 
@@ -87,15 +109,16 @@ public class PlayerControl : MonoBehaviour
             inventory.AttemptShoot();
         }
 
-        if (Input.GetMouseButtonDown(1))
+        if (Input.GetMouseButtonDown(1) || Input.GetButtonDown("Grapple"))
         {
             Grapple();
         }
 
         if (Input.GetButtonDown("Jump"))
         {
-            if(feet.IsGrounded)
-                Jump();
+			if(feet.IsGrounded) {
+				Jump();
+			}
         }
 
     }
@@ -107,14 +130,19 @@ public class PlayerControl : MonoBehaviour
 
     public void UpdateGrapplePull(Vector3 dir)
     {
-        rigid.velocity = grapplePullSpeed * dir;
+		rigid.velocity = rigid.velocity * (1 - grappleLerpTime * Time.deltaTime) + (grapplePullSpeed * dir) * (grappleLerpTime * Time.deltaTime);
         isPulled = true;
     }
 
-    public void EndGrapplePull()
+	public void StartGrapplePull(Vector3 dir) {
+		rigid.velocity += grapplePullSpeed * dir * 0.75f;
+		isPulled = true;
+	}
+
+	public void EndGrapplePull()
     {
         isPulled = false;
-    }
+	}
 
     void Jump()
     {

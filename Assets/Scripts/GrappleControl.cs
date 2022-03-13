@@ -73,6 +73,10 @@ public class GrappleControl : MonoBehaviour
                 oldPos = transform.position;
                 grapplePosDelta = 0.0f;
                 break;
+			case GrappleState.GRIPPING:
+				Vector3 vecToPlayer = transform.position - player.transform.position;
+				player.StartGrapplePull(vecToPlayer.normalized);
+				break;
         }
     }
 
@@ -101,7 +105,7 @@ public class GrappleControl : MonoBehaviour
         grapplePosDelta += (oldPos - transform.position).magnitude;
         oldPos = transform.position;
 
-        if (grapplePosDelta > maxGrappleLength)
+        if (grapplePosDelta > maxGrappleLength || (Input.GetMouseButton(1) == false && Input.GetButton("Grapple") == false))
         {
             SetState(GrappleState.RETRACT);
         }
@@ -114,8 +118,8 @@ public class GrappleControl : MonoBehaviour
         rigid.velocity = new Vector3();
         player.UpdateGrapplePull(vecToPlayer.normalized);
 
-        if (vecToPlayer.magnitude < 1.0f)
-        {
+        if(/*vecToPlayer.magnitude < 1.0f ||*/ (Input.GetMouseButton(1) == false && Input.GetButton("Grapple") == false))
+		{
             SetState(GrappleState.IDLE);
             player.EndGrapplePull();
         }

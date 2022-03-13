@@ -13,9 +13,13 @@ public class Gun : MonoBehaviour
     [SerializeField] public int maxAmmo;
     [HideInInspector] public int currentAmmo;
 	[SerializeField] float reloadTime;
+	[SerializeField] List<MeshRenderer> skinRenderers;
+	[SerializeField] Material normalMat;
+	[SerializeField] Material reloadMat;
 
-    //Shoot variables
-    float timeBetweenShots => 1f / shootRate;
+
+	//Shoot variables
+	float timeBetweenShots => 1f / shootRate;
     float shootRateTimer = 0f;
 
     void Update()
@@ -57,7 +61,16 @@ public class Gun : MonoBehaviour
     }
 
 	IEnumerator ReloadCoroutine() {
+
+		foreach(MeshRenderer mr in skinRenderers) {
+			mr.material = reloadMat;
+		}
+
 		yield return new WaitForSeconds(reloadTime);
+
+		foreach(MeshRenderer mr in skinRenderers) {
+			mr.material = normalMat;
+		}
 
 		currentAmmo = maxAmmo;
 		reloadCoroutine = null;

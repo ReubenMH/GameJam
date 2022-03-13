@@ -10,8 +10,9 @@ public class UIControl : MonoBehaviour
 
     [SerializeField] CanvasGroup pickupGunCanvasGroup;
     [SerializeField] CanvasGroup gunInfoCanvas;
+	[SerializeField] CanvasGroup crosshairCanvas;
 
-    [Header("Gun UI")]
+	[Header("Gun UI")]
     Gun currentUIGun;
     [SerializeField] TextMeshProUGUI gunName;
     [SerializeField] TextMeshProUGUI gunAmmo;
@@ -25,8 +26,14 @@ public class UIControl : MonoBehaviour
     {
         if(currentUIGun != null)
         {
-            gunAmmo.text = $"{currentUIGun.currentAmmo} / {currentUIGun.maxAmmo}";
-        }
+			string ammoString = "";
+			for(int i = 0; i < currentUIGun.currentAmmo; i++) {
+				ammoString += "|";
+			}
+
+			gunAmmo.text = ammoString; //$"{currentUIGun.currentAmmo} / {currentUIGun.maxAmmo}";
+
+		}
     }
 
     public void SetPickupGun(bool b)
@@ -40,7 +47,11 @@ public class UIControl : MonoBehaviour
         currentUIGun = gun;
         gunInfoCanvas.DOKill();
         gunInfoCanvas.DOFade(1f, 0.3f);
-        gunName.text = currentUIGun.gunName;
+
+		crosshairCanvas.DOKill();
+		crosshairCanvas.DOFade(1f, 0.3f);
+
+		gunName.text = currentUIGun.gunName;
     }
 
     public void HideGunInfoCanvas()
@@ -48,5 +59,8 @@ public class UIControl : MonoBehaviour
         currentUIGun = null;
         gunInfoCanvas.DOKill();
         gunInfoCanvas.DOFade(0f, 0.3f);
-    }
+
+		crosshairCanvas.DOKill();
+		crosshairCanvas.DOFade(1f, 0.3f);
+	}
 }
