@@ -12,6 +12,7 @@ public class Gun : MonoBehaviour
     [SerializeField] float shootRate;
     [SerializeField] public int maxAmmo;
     [HideInInspector] public int currentAmmo;
+	[SerializeField] float reloadTime;
 
     //Shoot variables
     float timeBetweenShots => 1f / shootRate;
@@ -39,6 +40,8 @@ public class Gun : MonoBehaviour
         Shoot();
     }
 
+	Coroutine reloadCoroutine;
+
     void Shoot()
     {
         shootRateTimer = 0f;
@@ -46,5 +49,19 @@ public class Gun : MonoBehaviour
 
         Bullet shotBullet = Instantiate(bulletPrefab, shootPoint.transform.position, transform.rotation);
         shotBullet.Shoot(transform.forward);
+
+		if(currentAmmo <= 0 && reloadCoroutine == null) {
+			reloadCoroutine = StartCoroutine(ReloadCoroutine());
+		}
+
     }
+
+	IEnumerator ReloadCoroutine() {
+		yield return new WaitForSeconds(reloadTime);
+
+		currentAmmo = maxAmmo;
+		reloadCoroutine = null;
+	}
+
+
 }
