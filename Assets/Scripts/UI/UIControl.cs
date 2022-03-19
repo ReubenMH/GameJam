@@ -11,6 +11,7 @@ public class UIControl : MonoBehaviour
     [SerializeField] CanvasGroup pickupGunCanvasGroup;
     [SerializeField] CanvasGroup gunInfoCanvas;
 	[SerializeField] CanvasGroup crosshairCanvas;
+    [SerializeField] RectTransform dashIndicator;
 
 	[Header("Gun UI")]
     Gun currentUIGun;
@@ -34,6 +35,13 @@ public class UIControl : MonoBehaviour
 			gunAmmo.text = ammoString; //$"{currentUIGun.currentAmmo} / {currentUIGun.maxAmmo}";
 
 		}
+
+        dashIndicator.Rotate(Vector3.forward * 65f * Time.deltaTime);
+    }
+
+    public void UpdateDashIndicator(bool canDash)
+    {
+        dashIndicator.gameObject.SetActive(canDash);
     }
 
     public void SetPickupGun(bool b)

@@ -11,15 +11,21 @@ public class PlayerControl : MonoBehaviour
     [SerializeField] Vector2 headLookBounds;
 
     [SerializeField] float walkSpeed;
-	[SerializeField] float airChangeSpeed;
-	[SerializeField] float airDrag;
-	[SerializeField] Vector2 cameraLookSpeed;
+    [SerializeField] float airChangeSpeed;
+    [SerializeField] float airDrag;
+    [SerializeField] Vector2 cameraLookSpeed;
     [SerializeField] float jumpForce;
     [SerializeField] float grappleSpeed;
     [SerializeField] float grapplePullSpeed;
-	[SerializeField] float grappleLerpTime;
+    [SerializeField] float grappleLerpTime;
+    [SerializeField] float dashForce;
 
-	PlayerInventory inventory;
+    bool dashPressed;
+    bool canDash;
+    float dashTimer = 0;
+    float dashInterval = 2f;
+
+    PlayerInventory inventory;
     PlayerFeet feet;
     float forward = 0.0f;
     float sideways = 0.0f;
@@ -34,19 +40,31 @@ public class PlayerControl : MonoBehaviour
         SetCursorBound(true);
     }
 
+    private void Start()
+    {
+        dashPressed = false;
+        dashTimer = dashInterval;
+    }
+
     private void Update()
     {
         forward = Input.GetAxis("Vertical");
         sideways = Input.GetAxis("Horizontal");
 
         ProcessLook();
-        //if (isPulled == false)
-        //{
-            ProcessMovement();
-        //}
+        ProcessMovement();
 
         if (Input.GetButtonDown("Cancel"))
             SetCursorBound(!isCursorBound);
+    }
+
+    private void FixedUpdate()
+    {
+        if (dashPressed)
+        {
+            dashPressed = false;
+            Dash();
+        }
     }
 
     bool isCursorBound = false;
@@ -56,8 +74,8 @@ public class PlayerControl : MonoBehaviour
         Cursor.visible = !b;
         Cursor.lockState = b ? CursorLockMode.Confined : CursorLockMode.None;
 
-		Cursor.lockState = CursorLockMode.Locked;
-	}
+        Cursor.lockState = CursorLockMode.Locked;
+    }
 
     Vector2 oldMousePos;
     float headRot = 0f;
@@ -78,23 +96,26 @@ public class PlayerControl : MonoBehaviour
     {
         Vector3 move = Vector3.zero;
 
-		float totalVelocity = Mathf.Max(Mathf.Sqrt(forward * forward + sideways * sideways), 0.1f);
-		
+        float totalVelocity = Mathf.Max(Mathf.Sqrt(forward * forward + sideways * sideways), 0.1f);
 
-		if(feet.IsGrounded) {
-			move += transform.forward * (forward * Mathf.Abs(forward) / totalVelocity) * walkSpeed;
-			move += transform.right * (sideways * Mathf.Abs(sideways) / totalVelocity) * walkSpeed;
-		} else {
-			move.x = rigid.velocity.x;
-			move.z = rigid.velocity.z;
 
-			move += transform.forward * (forward * Mathf.Abs(forward) / totalVelocity) * airChangeSpeed * Time.deltaTime;
-			move += transform.right * (sideways * Mathf.Abs(sideways) / totalVelocity) * airChangeSpeed * Time.deltaTime;
+        if (feet.IsGrounded)
+        {
+            move += transform.forward * (forward * Mathf.Abs(forward) / totalVelocity) * walkSpeed;
+            move += transform.right * (sideways * Mathf.Abs(sideways) / totalVelocity) * walkSpeed;
+        }
+        else
+        {
+            move.x = rigid.velocity.x;
+            move.z = rigid.velocity.z;
 
-			move.x *= (1f - airDrag * Time.deltaTime);
-			move.z *= (1f - airDrag * Time.deltaTime);
+            move += transform.forward * (forward * Mathf.Abs(forward) / totalVelocity) * airChangeSpeed * Time.deltaTime;
+            move += transform.right * (sideways * Mathf.Abs(sideways) / totalVelocity) * airChangeSpeed * Time.deltaTime;
 
-		}
+            move.x *= (1f - airDrag * Time.deltaTime);
+            move.z *= (1f - airDrag * Time.deltaTime);
+
+        }
 
         move.y += rigid.velocity.y;
         rigid.velocity = move;
@@ -116,11 +137,41 @@ public class PlayerControl : MonoBehaviour
 
         if (Input.GetButtonDown("Jump"))
         {
-			if(feet.IsGrounded) {
-				Jump();
-			}
+            if (feet.IsGrounded)
+            {
+                Jump();
+            }
         }
 
+        if (canDash && Input.GetButtonDown("Dash"))
+        {
+            SetCanDash(false);
+            dashPressed = true;
+            dashTimer = 0;
+        }
+
+        UpdateDashTimer();
+    }
+
+    void UpdateDashTimer()
+    {
+        if (dashTimer < dashInterval)
+        {
+            dashTimer += Time.deltaTime;
+        }
+        else
+        {
+            SetCanDash(true);
+        }
+    }
+
+    void SetCanDash(bool canDash)
+    {
+        if(this.canDash != canDash)
+        {
+            this.canDash = canDash;
+            UIControl.Instance.UpdateDashIndicator(canDash);
+        }
     }
 
     void Grapple()
@@ -130,25 +181,32 @@ public class PlayerControl : MonoBehaviour
 
     public void UpdateGrapplePull(Vector3 dir)
     {
-		rigid.velocity = rigid.velocity * (1 - grappleLerpTime * Time.deltaTime) + (grapplePullSpeed * dir) * (grappleLerpTime * Time.deltaTime);
+        rigid.velocity = rigid.velocity * (1 - grappleLerpTime * Time.deltaTime) + (grapplePullSpeed * dir) * (grappleLerpTime * Time.deltaTime);
         isPulled = true;
     }
 
-	public void StartGrapplePull(Vector3 dir) {
-		rigid.velocity += grapplePullSpeed * dir * 0.75f;
-		isPulled = true;
-	}
+    public void StartGrapplePull(Vector3 dir)
+    {
+        rigid.velocity += grapplePullSpeed * dir * 0.75f;
+        isPulled = true;
+    }
 
-	public void EndGrapplePull()
+    public void EndGrapplePull()
     {
         isPulled = false;
-	}
+    }
 
     void Jump()
     {
         Vector3 velocity = rigid.velocity;
         velocity.y = jumpForce;
         rigid.velocity = velocity;
+    }
+
+    void Dash()
+    {
+        Vector3 dashDir = head.transform.forward * dashForce;
+        rigid.AddForce(dashDir * dashForce, ForceMode.Impulse);
     }
 
 }
